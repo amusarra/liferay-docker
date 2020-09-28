@@ -10,17 +10,17 @@ function check_liferay_additional_files() {
     if [[ $additional_file =~ $regex_osgi_dependencies ]]; then
 
       if [[ ${BASH_REMATCH[2]} == "osgi" ]]; then
-        found_additional_files+=( "${additional_file}" )
+        found_additional_files+=("${additional_file}")
       fi
 
       if [[ ${BASH_REMATCH[2]} == "dependencies" ]]; then
-        found_additional_files+=( "${additional_file}" )
+        found_additional_files+=("${additional_file}")
       fi
     fi
 
     if [[ $additional_file =~ $regex_war ]]; then
       if [[ ${additional_file} == *.war ]]; then
-        found_additional_files+=( "${additional_file}" )
+        found_additional_files+=("${additional_file}")
       fi
     fi
   done
@@ -159,7 +159,6 @@ function get_jboss_archive() {
   echo "${liferay_jboss_archive}"
 }
 
-
 function get_tomcat_version() {
   if [ -e ${1}/tomcat-* ]; then
     for temp_file_name in $(ls ${1}); do
@@ -196,7 +195,7 @@ function pid_8080() {
   echo ${pid##p}
 }
 
-function prepare_jboss_eap {
+function prepare_jboss_eap() {
   local jboss_version=$(get_jboss_version "${TEMP_DIR}/bundles")
 
   # Copy Liferay Module Configuration from template
@@ -210,69 +209,65 @@ function prepare_jboss_eap {
 
 }
 
-function prepare_temp_for_manual_installation {
-    local temp_dir_abs=$(get_abs_filename "${TEMP_DIR}")
+function prepare_temp_for_manual_installation() {
+  local temp_dir_abs=$(get_abs_filename "${TEMP_DIR}")
 
-    mkdir "${TEMP_DIR}/bundles"
+  mkdir "${TEMP_DIR}/bundles"
 
-    cp -r ${1}/* "${TEMP_DIR}/bundles"
+  cp -r ${1}/* "${TEMP_DIR}/bundles"
 
-    mkdir "${TEMP_DIR}/liferay"
-    mkdir "${TEMP_DIR}/liferay/data"
-    mkdir "${TEMP_DIR}/liferay/data/license"
-    mkdir "${TEMP_DIR}/liferay/logs"
-    mkdir "${TEMP_DIR}/liferay/osgi"
-    mkdir "${TEMP_DIR}/liferay/config"
-    mkdir "${TEMP_DIR}/liferay/deploy"
-    mkdir "${TEMP_DIR}/liferay/application-server"
+  mkdir "${TEMP_DIR}/liferay"
+  mkdir "${TEMP_DIR}/liferay/data"
+  mkdir "${TEMP_DIR}/liferay/data/license"
+  mkdir "${TEMP_DIR}/liferay/logs"
+  mkdir "${TEMP_DIR}/liferay/osgi"
+  mkdir "${TEMP_DIR}/liferay/config"
+  mkdir "${TEMP_DIR}/liferay/deploy"
+  mkdir "${TEMP_DIR}/liferay/application-server"
 
-    local additional_files
-    local additional_files_array=()
+  local additional_files
+  local additional_files_array=()
 
-    additional_files=$(check_liferay_additional_files "${TEMP_DIR}/bundles")
-    additional_files_array=($additional_files)
+  additional_files=$(check_liferay_additional_files "${TEMP_DIR}/bundles")
+  additional_files_array=($additional_files)
 
-    if [[ ${#additional_files_array[@]} -lt 3 ]]
-    then
-      echo "Check if all additional files is present in ${TEMP_DIR}/bundles"
-      exit 2
-    fi
+  if [[ ${#additional_files_array[@]} -lt 3 ]]; then
+    echo "Check if all additional files is present in ${TEMP_DIR}/bundles"
+    exit 2
+  fi
 
-    local liferay_war_archive=$(get_abs_filename "${additional_files_array[0]}")
-    local liferay_dependencies_archive=$(get_abs_filename "${additional_files_array[1]}")
-    local liferay_osgi_archive=$(get_abs_filename "${additional_files_array[2]}")
+  local liferay_war_archive=$(get_abs_filename "${additional_files_array[0]}")
+  local liferay_dependencies_archive=$(get_abs_filename "${additional_files_array[1]}")
+  local liferay_osgi_archive=$(get_abs_filename "${additional_files_array[2]}")
 
-    # Extract Application Server
-    local as_archive_file=$(get_jboss_archive "${1}")
-    local as_archive_file_abs=$(get_abs_filename "${as_archive_file}")
-    cd "${temp_dir_abs}/liferay/application-server" || exit 3
-    tar -xvf "${as_archive_file_abs}" --strip 1
+  # Extract Application Server
+  local as_archive_file=$(get_jboss_archive "${1}")
+  local as_archive_file_abs=$(get_abs_filename "${as_archive_file}")
+  cd "${temp_dir_abs}/liferay/application-server" || exit 3
+  tar -xvf "${as_archive_file_abs}" --strip 1
 
-    if [[ $? -eq 0 ]]
-    then
-      mkdir -p "${temp_dir_abs}/liferay/application-server/modules/com/liferay/portal/main"
-      cd "${temp_dir_abs}/liferay/application-server/modules/com/liferay/portal/main" || exit 3
-      tar -xvf $(get_abs_filename "${liferay_dependencies_archive}") --strip 1
-    fi
+  if [[ $? -eq 0 ]]; then
+    mkdir -p "${temp_dir_abs}/liferay/application-server/modules/com/liferay/portal/main"
+    cd "${temp_dir_abs}/liferay/application-server/modules/com/liferay/portal/main" || exit 3
+    tar -xvf $(get_abs_filename "${liferay_dependencies_archive}") --strip 1
+  fi
 
-    if [[ $? -eq 0 ]]
-    then
-      cd "${temp_dir_abs}/liferay/application-server/standalone/deployments" || exit 3
-      touch ROOT.war.dodeploy
-      mkdir ROOT.war
-      cd ROOT.war || exit 3
-      unzip $(get_abs_filename "${liferay_war_archive}")
-    fi
+  if [[ $? -eq 0 ]]; then
+    cd "${temp_dir_abs}/liferay/application-server/standalone/deployments" || exit 3
+    touch ROOT.war.dodeploy
+    mkdir ROOT.war
+    cd ROOT.war || exit 3
+    unzip $(get_abs_filename "${liferay_war_archive}")
+  fi
 
-    if [[ $? -eq 0 ]]
-    then
-      cd "${temp_dir_abs}/liferay/osgi" || exit 3
-      tar -xvf $(get_abs_filename "${liferay_osgi_archive}") --strip 2
-    fi
+  if [[ $? -eq 0 ]]; then
+    cd "${temp_dir_abs}/liferay/osgi" || exit 3
+    tar -xvf $(get_abs_filename "${liferay_osgi_archive}") --strip 2
+  fi
 
-    rm -fr ${temp_dir_abs}/liferay/osgi/state/*
+  rm -fr ${temp_dir_abs}/liferay/osgi/state/*
 
-    cd ../../../
+  cd ../../../
 }
 
 function prepare_tomcat() {
