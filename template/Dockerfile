@@ -1,5 +1,6 @@
 FROM azul/zulu-openjdk-alpine:8u232
 
+ARG APPLICATION_SERVER
 ARG LABEL_BUILD_DATE
 ARG LABEL_NAME
 ARG LABEL_VCS_REF
@@ -19,6 +20,7 @@ RUN ln -fs /opt/liferay/* /home/liferay
 
 ENTRYPOINT /usr/local/bin/liferay_entrypoint.sh
 
+ENV APPLICATION_SERVER="${APPLICATION_SERVER}"
 ENV JAVA_VERSION=zulu8
 ENV JPDA_ADDRESS=8000
 

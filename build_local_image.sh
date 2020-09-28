@@ -17,6 +17,7 @@ function build_docker_image {
 		--build-arg LABEL_VCS_REF=$(git rev-parse HEAD) \
 		--build-arg LABEL_VCS_URL=$(git config --get remote.origin.url) \
 		--build-arg LABEL_VERSION="${release_version}" \
+		--build-arg APPLICATION_SERVER="${5}" \
 		$(get_docker_image_tags_args ${DOCKER_IMAGE_TAGS[@]}) \
 		${TEMP_DIR}
 }
@@ -24,9 +25,9 @@ function build_docker_image {
 function check_usage {
 	if [ ! -n "${3}" ]
 	then
-		echo "Usage: ${0} path-to-bundle image-name version <push>"
+		echo "Usage: ${0} path-to-bundle image-name version [push] [application server]"
 		echo ""
-		echo "Example: ${0} ../bundles/master portal-snapshot demo-cbe09fb0 <push>"
+		echo "Example: ${0} ../bundles/master portal-snapshot demo-cbe09fb0 push jboss-eap"
 
 		exit 1
 	fi
@@ -39,13 +40,24 @@ function main {
 
 	make_temp_directory
 
-	prepare_temp_directory ${@}
+  if [[ ${5} == "jboss-eap" ]]
+  then
 
-	prepare_tomcat
+    prepare_temp_for_manual_installation "${@}"
+
+    prepare_jboss_eap
+
+  else
+    prepare_temp_directory ${@}
+
+    prepare_tomcat
+  fi
 
 	build_docker_image ${@}
 
-	test_docker_image
+  if [[ ${5} != "jboss-eap" ]]; then
+  	test_docker_image
+  fi
 
 	push_docker_images ${4}
 
