@@ -26,7 +26,18 @@ function check_usage() {
   if [ ! -n "${3}" ]; then
     echo "Usage: ${0} path-to-bundle image-name version [push] [application server]"
     echo ""
-    echo "Example: ${0} ../bundles/master portal-snapshot demo-cbe09fb0 push jboss-eap"
+    echo "Example: "
+    echo -e "\t 1. Build docker image from Liferay Tomcat Bundle"
+    echo -e "\t\t ${0} ../bundles/master portal-snapshot demo-cbe09fb0"
+
+    echo -e "\t 2. Build docker image from Liferay Tomcat Bundle with push the image"
+    echo -e "\t\t ${0} ../bundles/master portal-snapshot demo-cbe09fb0 push"
+
+    echo -e "\t 3. Build docker image Liferay with JBoss EAP Bundle without push the image"
+    echo -e "\t\t ${0} ../../bundles/ portal-snapshot liferay72-dxp-dev no-push jboss-eap"
+
+    echo -e "\t 4. Build docker image Liferay with JBoss EAP Bundle with push the image"
+    echo -e "\t\t ${0} ../../bundles/ portal-snapshot liferay72-dxp-dev push jboss-eap"
 
     exit 1
   fi
