@@ -51,6 +51,7 @@ function main() {
   make_temp_directory
 
   if [[ ${5} == "jboss-eap" ]]; then
+    prepare_patching_tool "${@}"
 
     prepare_temp_for_manual_installation "${@}"
 
@@ -71,6 +72,17 @@ function main() {
   push_docker_images ${4}
 
   clean_up_temp_directory
+}
+
+function prepare_patching_tool() {
+  if [ ! -e ${TEMP_DIR}/liferay/patching-tool ]
+  then
+    local patching_tool_archive_file=$(get_patching_tool_archive "${1}")
+
+    unzip "${patching_tool_archive_file}" -d ${TEMP_DIR}/liferay/
+
+    ${TEMP_DIR}/liferay/patching-tool/patching-tool.sh auto-discovery
+  fi
 }
 
 function prepare_temp_directory() {
