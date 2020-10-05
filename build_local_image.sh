@@ -45,6 +45,24 @@ function check_usage() {
   check_utils curl docker java
 }
 
+function install_fix_pack() {
+  if [ -n "${LIFERAY_DOCKER_FIX_PACK_URL}" ]; then
+    local fix_pack_url=${LIFERAY_DOCKER_FIX_PACK_URL}
+
+    FIX_PACK_FILE_NAME=${fix_pack_url##*/}
+
+    download downloads/fix-packs/${FIX_PACK_FILE_NAME} ${fix_pack_url}
+
+    cp downloads/fix-packs/${FIX_PACK_FILE_NAME} ${TEMP_DIR}/liferay/patching-tool/patches
+
+    ${TEMP_DIR}/liferay/patching-tool/patching-tool.sh install
+    ${TEMP_DIR}/liferay/patching-tool/patching-tool.sh separate temp
+
+    rm -fr ${TEMP_DIR}/liferay/osgi/state/*
+    rm -f ${TEMP_DIR}/liferay/patching-tool/patches/*
+  fi
+}
+
 function main() {
   check_usage ${@}
 
@@ -76,13 +94,14 @@ function main() {
 }
 
 function prepare_patching_tool() {
-  if [ ! -e ${TEMP_DIR}/liferay/patching-tool ]
-  then
+  if [ ! -e ${TEMP_DIR}/liferay/patching-tool ]; then
     local patching_tool_archive_file=$(get_patching_tool_archive "${1}")
 
-    unzip "${patching_tool_archive_file}" -d ${TEMP_DIR}/liferay/
+    if [[ -e ${patching_tool_archive_file} ]]; then
+      unzip "${patching_tool_archive_file}" -d ${TEMP_DIR}/liferay/
 
-    ${TEMP_DIR}/liferay/patching-tool/patching-tool.sh auto-discovery
+      ${TEMP_DIR}/liferay/patching-tool/patching-tool.sh auto-discovery
+    fi
   fi
 }
 
