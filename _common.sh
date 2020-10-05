@@ -159,6 +159,26 @@ function get_jboss_archive() {
   echo "${liferay_jboss_archive}"
 }
 
+function get_patching_tool_archive() {
+  local regex_patching_tool_version='patching-tool-(([0-9]+\.)?([0-9]+\.)?(\*|[0-9]+)).+'
+
+  for temp_file_name in "${1}"/patching-tool-*; do
+    if [[ $temp_file_name =~ $regex_patching_tool_version ]]; then
+      if [[ -n ${BASH_REMATCH[0]} ]]; then
+        local patching_tool_archive=${temp_file_name}
+      fi
+    fi
+  done
+
+  if [[ -z ${patching_tool_archive} ]]; then
+    echo "Unable to determine Patching Tool Archive."
+
+    exit 1
+  fi
+
+  echo "${patching_tool_archive}"
+}
+
 function get_tomcat_version() {
   if [ -e ${1}/tomcat-* ]; then
     for temp_file_name in $(ls ${1}); do
