@@ -249,6 +249,8 @@ function prepare_temp_for_manual_installation() {
   mkdir "${TEMP_DIR}/liferay/deploy"
   mkdir "${TEMP_DIR}/liferay/jboss-eap-${jboss_version}"
 
+  touch "${TEMP_DIR}/liferay/.liferay-home"
+
   local additional_files
   local additional_files_array=()
 

@@ -51,11 +51,12 @@ function main() {
   make_temp_directory
 
   if [[ ${5} == "jboss-eap" ]]; then
-    prepare_patching_tool "${@}"
 
     prepare_temp_for_manual_installation "${@}"
 
     prepare_jboss_eap
+
+    prepare_patching_tool "${@}"
 
   else
     prepare_temp_directory ${@}
