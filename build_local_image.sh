@@ -46,20 +46,24 @@ function check_usage() {
 }
 
 function install_fix_pack() {
-  if [ -n "${LIFERAY_DOCKER_FIX_PACK_URL}" ]; then
-    local fix_pack_url=${LIFERAY_DOCKER_FIX_PACK_URL}
+  for temp_file_name in "${1}"/liferay-fix-pack-*; do
+    if [[ -e ${temp_file_name} ]]; then
+      echo "Copy the Liferay Fix Pack ${temp_file_name}" in ${TEMP_DIR}/liferay/patching-tool/patches
+      cp "${temp_file_name}" ${TEMP_DIR}/liferay/patching-tool/patches
+    fi
+  done
 
-    FIX_PACK_FILE_NAME=${fix_pack_url##*/}
+  if [ "$(ls -A ${TEMP_DIR}/liferay/patching-tool/patches/)" ]
+  then
 
-    download downloads/fix-packs/${FIX_PACK_FILE_NAME} ${fix_pack_url}
+    if ( ${TEMP_DIR}/liferay/patching-tool/patching-tool.sh install )
+    then
+      rm -fr ${TEMP_DIR}/liferay/osgi/state/*
+      rm -f ${TEMP_DIR}/liferay/patching-tool/patches/*
 
-    cp downloads/fix-packs/${FIX_PACK_FILE_NAME} ${TEMP_DIR}/liferay/patching-tool/patches
-
-    ${TEMP_DIR}/liferay/patching-tool/patching-tool.sh install
-    ${TEMP_DIR}/liferay/patching-tool/patching-tool.sh separate temp
-
-    rm -fr ${TEMP_DIR}/liferay/osgi/state/*
-    rm -f ${TEMP_DIR}/liferay/patching-tool/patches/*
+      echo ""
+      echo "Patch applied successfully."
+    fi
   fi
 }
 
@@ -75,6 +79,8 @@ function main() {
     prepare_jboss_eap
 
     prepare_patching_tool "${@}"
+
+    install_fix_pack "${@}"
 
   else
     prepare_temp_directory ${@}
