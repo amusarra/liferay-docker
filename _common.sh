@@ -285,7 +285,7 @@ function install_jboss_patch() {
     done
 
     if [ $launched = "false" ]; then
-      echo "Staring JBoss EAP Standalone in AdminOnly mode...[JBoss EAP did not start correctly. Exiting]"
+      echo "Staring JBoss EAP Standalone in AdminOnly mode...[JBoss EAP did not start correctly. See the log file $jboss_console_log. Exiting]"
       exit 1
     else
       echo "Staring JBoss EAP Standalone in AdminOnly mode...[END]"
