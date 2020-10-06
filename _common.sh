@@ -261,46 +261,48 @@ function install_jboss_patch() {
   local jboss_patch_archive=$(get_jboss_patch_archive "${TEMP_DIR}/bundles")
   local jboss_version=$(get_jboss_version "${TEMP_DIR}/bundles")
 
-  local startup_wait=30
-  local jboss_console_log=jboss-patch-console.log
+  if [[ -f $jboss_patch_archive ]]; then
+    local startup_wait=30
+    local jboss_console_log=jboss-patch-console.log
 
-  echo "Preparing for installation of the JBoss EAP Patch ${jboss_patch_archive}..."
-  echo "Staring JBoss EAP Standalone in AdminOnly mode..."
+    echo "Preparing for installation of the JBoss EAP Patch ${jboss_patch_archive}..."
+    echo "Staring JBoss EAP Standalone in AdminOnly mode..."
 
-  ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/bin/standalone.sh --admin-only >$jboss_console_log 2>&1 &
+    ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/bin/standalone.sh --admin-only >$jboss_console_log 2>&1 &
 
-  # Some wait code. Wait till the system is ready
-  count=0
-  launched=false
+    # Some wait code. Wait till the system is ready
+    count=0
+    launched=false
 
-  until [ $count -gt $startup_wait ]; do
-    grep 'WFLYSRV0025:' $jboss_console_log >/dev/null
-    if [ $? -eq 0 ]; then
-      launched=true
-      break
+    until [ $count -gt $startup_wait ]; do
+      grep 'WFLYSRV0025:' $jboss_console_log >/dev/null
+      if [ $? -eq 0 ]; then
+        launched=true
+        break
+      fi
+      sleep 1
+      ((count++))
+    done
+
+    if [ $launched = "false" ]; then
+      echo "Staring JBoss EAP Standalone in AdminOnly mode...[JBoss EAP did not start correctly. Exiting]"
+      exit 1
+    else
+      echo "Staring JBoss EAP Standalone in AdminOnly mode...[END]"
     fi
-    sleep 1
-    ((count++))
-  done
 
-  if [ $launched = "false" ]; then
-    echo "Staring JBoss EAP Standalone in AdminOnly mode...[JBoss EAP did not start correctly. Exiting]"
-    exit 1
-  else
-    echo "Staring JBoss EAP Standalone in AdminOnly mode...[END]"
+    # Apply the patch
+    echo "Applying patch: $jboss_patch_archive..."
+    ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/bin/jboss-cli.sh -c "patch apply ${jboss_patch_archive}"
+
+    # And we can shutdown the system using the CLI.
+    echo "Shutting down JBoss EAP..."
+    ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/bin/jboss-cli.sh -c ":shutdown"
+
+    echo "Shutting down JBoss EAP..."
+
+    echo "Preparing for installation of the JBoss EAP Patch ${jboss_patch_archive}...[END]"
   fi
-
-  # Apply the patch
-  echo "Applying patch: $jboss_patch_archive..."
-  ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/bin/jboss-cli.sh -c "patch apply ${jboss_patch_archive}"
-
-  # And we can shutdown the system using the CLI.
-  echo "Shutting down JBoss EAP..."
-  ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/bin/jboss-cli.sh -c ":shutdown"
-
-  echo "Shutting down JBoss EAP..."
-
-  echo "Preparing for installation of the JBoss EAP Patch ${jboss_patch_archive}...[END]"
 }
 
 function install_security_fix_pack() {
