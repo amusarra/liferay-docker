@@ -45,28 +45,6 @@ function check_usage() {
   check_utils curl docker java
 }
 
-function install_fix_pack() {
-  for temp_file_name in "${1}"/liferay-fix-pack-*; do
-    if [[ -e ${temp_file_name} ]]; then
-      echo "Copy the Liferay Fix Pack ${temp_file_name}" in ${TEMP_DIR}/liferay/patching-tool/patches
-      cp "${temp_file_name}" ${TEMP_DIR}/liferay/patching-tool/patches
-    fi
-  done
-
-  if [ "$(ls -A ${TEMP_DIR}/liferay/patching-tool/patches/)" ]
-  then
-
-    if ( ${TEMP_DIR}/liferay/patching-tool/patching-tool.sh install )
-    then
-      rm -fr ${TEMP_DIR}/liferay/osgi/state/*
-      rm -f ${TEMP_DIR}/liferay/patching-tool/patches/*
-
-      echo ""
-      echo "Patch applied successfully."
-    fi
-  fi
-}
-
 function main() {
   check_usage ${@}
 
@@ -79,6 +57,10 @@ function main() {
     prepare_jboss_eap
 
     prepare_patching_tool "${@}"
+
+    install_fix_pack "${@}"
+
+    install_security_fix_pack "${@}"
 
     install_fix_pack "${@}"
 

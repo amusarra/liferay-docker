@@ -197,6 +197,72 @@ function get_tomcat_version() {
   echo ${liferay_tomcat_version}
 }
 
+function install_fix_pack() {
+  for temp_file_name in "${1}"/liferay-fix-pack-*; do
+    if [[ -e ${temp_file_name} ]]; then
+      echo "Copy the Liferay Fix Pack ${temp_file_name}" in ${TEMP_DIR}/liferay/patching-tool/patches
+      cp "${temp_file_name}" ${TEMP_DIR}/liferay/patching-tool/patches
+    fi
+  done
+
+  if [ "$(ls -A ${TEMP_DIR}/liferay/patching-tool/patches/)" ]
+  then
+
+    if ( ${TEMP_DIR}/liferay/patching-tool/patching-tool.sh install )
+    then
+      rm -fr ${TEMP_DIR}/liferay/osgi/state/*
+      rm -f ${TEMP_DIR}/liferay/patching-tool/patches/*
+
+      echo ""
+      echo "Fix Pack applied successfully."
+    fi
+  fi
+}
+
+function install_hotfix() {
+  for temp_file_name in "${1}"/liferay-hotfix-*; do
+    if [[ -e ${temp_file_name} ]]; then
+      echo "Copy the Liferay Hotfix ${temp_file_name}" in ${TEMP_DIR}/liferay/patching-tool/patches
+      cp "${temp_file_name}" ${TEMP_DIR}/liferay/patching-tool/patches
+    fi
+  done
+
+  if [ "$(ls -A ${TEMP_DIR}/liferay/patching-tool/patches/)" ]
+  then
+
+    if ( ${TEMP_DIR}/liferay/patching-tool/patching-tool.sh install )
+    then
+      rm -fr ${TEMP_DIR}/liferay/osgi/state/*
+      rm -f ${TEMP_DIR}/liferay/patching-tool/patches/*
+
+      echo ""
+      echo "Hotfix applied successfully."
+    fi
+  fi
+}
+
+function install_security_fix_pack {
+  for temp_file_name in "${1}"/liferay-security-*; do
+    if [[ -e ${temp_file_name} ]]; then
+      echo "Copy the Liferay Security Fix Pack ${temp_file_name}" in ${TEMP_DIR}/liferay/patching-tool/patches
+      cp "${temp_file_name}" ${TEMP_DIR}/liferay/patching-tool/patches
+    fi
+  done
+
+  if [ "$(ls -A ${TEMP_DIR}/liferay/patching-tool/patches/)" ]
+  then
+
+    if ( ${TEMP_DIR}/liferay/patching-tool/patching-tool.sh install )
+    then
+      rm -fr ${TEMP_DIR}/liferay/osgi/state/*
+      rm -f ${TEMP_DIR}/liferay/patching-tool/patches/*
+
+      echo ""
+      echo "Security Fix Pack applied successfully."
+    fi
+  fi
+}
+
 function make_temp_directory() {
   CURRENT_DATE=$(date)
 
