@@ -120,7 +120,7 @@ function get_docker_image_tags_args() {
 }
 
 function get_jboss_version() {
-  local regex_jboss_version='jboss-eap-(([0-9]+\.)?([0-9]+\.)?(\*|[0-9]+)).+'
+  local regex_jboss_version='jboss-eap-(([0-9]+\.)?([0-9]+\.)?(\*|[0-9]+)).zip'
 
   for temp_file_name in "${1}"/jboss-eap-*; do
     if [[ $temp_file_name =~ $regex_jboss_version ]]; then
@@ -157,6 +157,26 @@ function get_jboss_archive() {
   fi
 
   echo "${liferay_jboss_archive}"
+}
+
+function get_jboss_patch_archive() {
+  local regex_jboss_patch_archive='jboss-eap-(([0-9]+\.)?([0-9]+\.)?(\*|[0-9]+))-patch.zip'
+
+  for temp_file_name in "${1}"/jboss-eap-*; do
+    if [[ $temp_file_name =~ $regex_jboss_patch_archive ]]; then
+      if [[ -n ${BASH_REMATCH[0]} ]]; then
+        local liferay_jboss_patch_archive=${temp_file_name}
+      fi
+    fi
+  done
+
+  if [[ -z ${liferay_jboss_patch_archive} ]]; then
+    echo "Unable to determine JBoss EAP Patch Archive."
+
+    exit 1
+  fi
+
+  echo "${liferay_jboss_patch_archive}"
 }
 
 function get_patching_tool_archive() {
@@ -205,11 +225,9 @@ function install_fix_pack() {
     fi
   done
 
-  if [ "$(ls -A ${TEMP_DIR}/liferay/patching-tool/patches/)" ]
-  then
+  if [ "$(ls -A ${TEMP_DIR}/liferay/patching-tool/patches/)" ]; then
 
-    if ( ${TEMP_DIR}/liferay/patching-tool/patching-tool.sh install )
-    then
+    if (${TEMP_DIR}/liferay/patching-tool/patching-tool.sh install); then
       rm -fr ${TEMP_DIR}/liferay/osgi/state/*
       rm -f ${TEMP_DIR}/liferay/patching-tool/patches/*
 
@@ -227,11 +245,9 @@ function install_hotfix() {
     fi
   done
 
-  if [ "$(ls -A ${TEMP_DIR}/liferay/patching-tool/patches/)" ]
-  then
+  if [ "$(ls -A ${TEMP_DIR}/liferay/patching-tool/patches/)" ]; then
 
-    if ( ${TEMP_DIR}/liferay/patching-tool/patching-tool.sh install )
-    then
+    if (${TEMP_DIR}/liferay/patching-tool/patching-tool.sh install); then
       rm -fr ${TEMP_DIR}/liferay/osgi/state/*
       rm -f ${TEMP_DIR}/liferay/patching-tool/patches/*
 
@@ -241,7 +257,53 @@ function install_hotfix() {
   fi
 }
 
-function install_security_fix_pack {
+function install_jboss_patch() {
+  local jboss_patch_archive=$(get_jboss_patch_archive "${TEMP_DIR}/bundles")
+  local jboss_version=$(get_jboss_version "${TEMP_DIR}/bundles")
+
+  local startup_wait=30
+  local jboss_console_log=jboss-patch-console.log
+
+  echo "Preparing for installation of the JBoss EAP Patch ${jboss_patch_archive}..."
+  echo "Staring JBoss EAP Standalone in AdminOnly mode..."
+
+  ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/bin/standalone.sh --admin-only >$jboss_console_log 2>&1 &
+
+  # Some wait code. Wait till the system is ready
+  count=0
+  launched=false
+
+  until [ $count -gt $startup_wait ]; do
+    grep 'WFLYSRV0025:' $jboss_console_log >/dev/null
+    if [ $? -eq 0 ]; then
+      launched=true
+      break
+    fi
+    sleep 1
+    ((count++))
+  done
+
+  if [ $launched = "false" ]; then
+    echo "Staring JBoss EAP Standalone in AdminOnly mode...[JBoss EAP did not start correctly. Exiting]"
+    exit 1
+  else
+    echo "Staring JBoss EAP Standalone in AdminOnly mode...[END]"
+  fi
+
+  # Apply the patch
+  echo "Applying patch: $jboss_patch_archive..."
+  ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/bin/jboss-cli.sh -c "patch apply ${jboss_patch_archive}"
+
+  # And we can shutdown the system using the CLI.
+  echo "Shutting down JBoss EAP..."
+  ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/bin/jboss-cli.sh -c ":shutdown"
+
+  echo "Shutting down JBoss EAP..."
+
+  echo "Preparing for installation of the JBoss EAP Patch ${jboss_patch_archive}...[END]"
+}
+
+function install_security_fix_pack() {
   for temp_file_name in "${1}"/liferay-security-*; do
     if [[ -e ${temp_file_name} ]]; then
       echo "Copy the Liferay Security Fix Pack ${temp_file_name}" in ${TEMP_DIR}/liferay/patching-tool/patches
@@ -249,11 +311,9 @@ function install_security_fix_pack {
     fi
   done
 
-  if [ "$(ls -A ${TEMP_DIR}/liferay/patching-tool/patches/)" ]
-  then
+  if [ "$(ls -A ${TEMP_DIR}/liferay/patching-tool/patches/)" ]; then
 
-    if ( ${TEMP_DIR}/liferay/patching-tool/patching-tool.sh install )
-    then
+    if (${TEMP_DIR}/liferay/patching-tool/patching-tool.sh install); then
       rm -fr ${TEMP_DIR}/liferay/osgi/state/*
       rm -f ${TEMP_DIR}/liferay/patching-tool/patches/*
 

@@ -54,6 +54,8 @@ function main() {
 
     prepare_temp_for_manual_installation "${@}"
 
+    install_jboss_patch
+
     prepare_jboss_eap
 
     prepare_patching_tool "${@}"
