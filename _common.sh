@@ -140,7 +140,7 @@ function get_jboss_version() {
 }
 
 function get_jboss_archive() {
-  local regex_jboss_version='jboss-eap-(([0-9]+\.)?([0-9]+\.)?(\*|[0-9]+)).+'
+  local regex_jboss_version='jboss-eap-(([0-9]+\.)?([0-9]+\.)?(\*|[0-9]+)).zip'
 
   for temp_file_name in "${1}"/jboss-eap-*; do
     if [[ $temp_file_name =~ $regex_jboss_version ]]; then
