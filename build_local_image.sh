@@ -64,7 +64,7 @@ function main() {
 
     install_security_fix_pack "${@}"
 
-    install_fix_pack "${@}"
+    install_hotfix "${@}"
 
   else
     prepare_temp_directory ${@}
