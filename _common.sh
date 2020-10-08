@@ -347,16 +347,16 @@ function prepare_jboss_eap() {
   local jboss_version=$(get_jboss_version "${TEMP_DIR}/bundles")
 
   # Copy Liferay Module Configuration from template
-  cp ${TEMP_DIR}/jboss-eap/${jboss_version}/modules/com/liferay/portal/main/module.xml \
-    ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/modules/com/liferay/portal/main/module.xml
+  cp ${TEMP_DIR}/jboss-eap/${jboss_version}/modules/com/liferay/portal/main/* \
+    ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/modules/com/liferay/portal/main/
 
   # Copy JBoss EAP Standalone xml configuration for Liferay
-  cp ${TEMP_DIR}/jboss-eap/${jboss_version}/standalone/configuration/standalone.xml \
-    ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/standalone/configuration/standalone.xml
+  cp ${TEMP_DIR}/jboss-eap/${jboss_version}/standalone/configuration/* \
+    ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/standalone/configuration/
 
   # Copy JBoss EAP Standalone bin configuration for Liferay
-  cp ${TEMP_DIR}/jboss-eap/${jboss_version}/bin/standalone.conf \
-    ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/bin/standalone.conf
+  cp ${TEMP_DIR}/jboss-eap/${jboss_version}/bin/* \
+    ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/bin/
 
 }
 
