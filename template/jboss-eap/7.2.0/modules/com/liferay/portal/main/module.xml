@@ -14,6 +14,7 @@
         <resource-root path="portal-kernel.jar" />
         <resource-root path="portlet.jar" />
         <resource-root path="hsql.jar" />
+        <resource-root path="ojdbc8.jar" />
     </resources>
     <dependencies>
         <module name="javax.api" />
