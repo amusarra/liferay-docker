@@ -346,6 +346,9 @@ function pid_8080() {
 function prepare_jboss_eap() {
   local jboss_version=$(get_jboss_version "${TEMP_DIR}/bundles")
 
+  # Create the symlink for JBoss EAP
+  ln -s jboss-eap-${jboss_version} ${TEMP_DIR}/liferay/jboss-eap
+
   # Copy Liferay Module Configuration from template
   cp ${TEMP_DIR}/jboss-eap/${jboss_version}/modules/com/liferay/portal/main/* \
     ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/modules/com/liferay/portal/main/
