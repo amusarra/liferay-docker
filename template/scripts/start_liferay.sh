@@ -7,9 +7,9 @@ function main() {
 
   if [ "${APPLICATION_SERVER}" == "jboss-eap" ]; then
     if [ "${LIFERAY_JPDA_ENABLED}" == "true" ]; then
-      ${LIFERAY_HOME}/jboss-eap-7.2.0/bin/standalone.sh -b 0.0.0.0 --debug ${JPDA_ADDRESS}
+      ${LIFERAY_HOME}/jboss-eap/bin/standalone.sh -b 0.0.0.0 --debug ${JPDA_ADDRESS}
     else
-      ${LIFERAY_HOME}/jboss-eap-7.2.0/bin/standalone.sh -b 0.0.0.0
+      ${LIFERAY_HOME}/jboss-eap/bin/standalone.sh -b 0.0.0.0
     fi
   else
     if [ "${LIFERAY_JPDA_ENABLED}" == "true" ]; then

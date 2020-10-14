@@ -346,20 +346,17 @@ function pid_8080() {
 function prepare_jboss_eap() {
   local jboss_version=$(get_jboss_version "${TEMP_DIR}/bundles")
 
-  # Create the symlink for JBoss EAP
-  ln -s jboss-eap-${jboss_version} ${TEMP_DIR}/liferay/jboss-eap
-
   # Copy Liferay Module Configuration from template
   cp ${TEMP_DIR}/jboss-eap/${jboss_version}/modules/com/liferay/portal/main/* \
-    ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/modules/com/liferay/portal/main/
+    ${TEMP_DIR}/liferay/jboss-eap/modules/com/liferay/portal/main/
 
   # Copy JBoss EAP Standalone xml configuration for Liferay
   cp ${TEMP_DIR}/jboss-eap/${jboss_version}/standalone/configuration/* \
-    ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/standalone/configuration/
+    ${TEMP_DIR}/liferay/jboss-eap/standalone/configuration/
 
   # Copy JBoss EAP Standalone bin configuration for Liferay
   cp ${TEMP_DIR}/jboss-eap/${jboss_version}/bin/* \
-    ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/bin/
+    ${TEMP_DIR}/liferay/jboss-eap/bin/
 
 }
 
@@ -378,7 +375,10 @@ function prepare_temp_for_manual_installation() {
   mkdir "${TEMP_DIR}/liferay/osgi"
   mkdir "${TEMP_DIR}/liferay/config"
   mkdir "${TEMP_DIR}/liferay/deploy"
-  mkdir "${TEMP_DIR}/liferay/jboss-eap-${jboss_version}"
+  mkdir "${TEMP_DIR}/liferay/jboss-eap"
+
+  # Create the symlink for JBoss EAP
+  ln -s jboss-eap ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}
 
   touch "${TEMP_DIR}/liferay/.liferay-home"
 
@@ -400,17 +400,17 @@ function prepare_temp_for_manual_installation() {
   # Extract Application Server
   local as_archive_file=$(get_jboss_archive "${1}")
   local as_archive_file_abs=$(get_abs_filename "${as_archive_file}")
-  cd "${temp_dir_abs}/liferay/jboss-eap-${jboss_version}" || exit 3
+  cd "${temp_dir_abs}/liferay/jboss-eap" || exit 3
   tar -xvf "${as_archive_file_abs}" --strip 1
 
   if [[ $? -eq 0 ]]; then
-    mkdir -p "${temp_dir_abs}/liferay/jboss-eap-${jboss_version}/modules/com/liferay/portal/main"
-    cd "${temp_dir_abs}/liferay/jboss-eap-${jboss_version}/modules/com/liferay/portal/main" || exit 3
+    mkdir -p "${temp_dir_abs}/liferay/jboss-eap/modules/com/liferay/portal/main"
+    cd "${temp_dir_abs}/liferay/jboss-eap/modules/com/liferay/portal/main" || exit 3
     tar -xvf $(get_abs_filename "${liferay_dependencies_archive}") --strip 1
   fi
 
   if [[ $? -eq 0 ]]; then
-    cd "${temp_dir_abs}/liferay/jboss-eap-${jboss_version}/standalone/deployments" || exit 3
+    cd "${temp_dir_abs}/liferay/jboss-eap/standalone/deployments" || exit 3
     touch ROOT.war.dodeploy
     mkdir ROOT.war
     cd ROOT.war || exit 3
