@@ -109,6 +109,31 @@ function get_abs_filename() {
   echo "$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
 }
 
+function get_liferay_additional_file_version() {
+  local regex_osgi_dependencies='liferay-(dxp|ce)-(dependencies|osgi)-(([0-9]+\.)?([0-9]+\.)?(\*|[0-9]+)).+'
+  local regex_war='liferay-(dxp|ce)-(([0-9]+\.)?([0-9]+\.)?(\*|[0-9]+)).+'
+  local version
+
+  if [[ ${1} =~ $regex_osgi_dependencies ]]; then
+
+    if [[ ${BASH_REMATCH[2]} == "osgi" ]]; then
+      version=${BASH_REMATCH[3]}
+    fi
+
+    if [[ ${BASH_REMATCH[2]} == "dependencies" ]]; then
+      version=${BASH_REMATCH[3]}
+    fi
+  fi
+
+  if [[ ${1} =~ $regex_war ]]; then
+    if [[ ${1} == *.war ]]; then
+      version=${BASH_REMATCH[2]}
+    fi
+  fi
+
+  echo "${version}"
+}
+
 function get_docker_image_tags_args() {
   local docker_image_tags_args=""
 
@@ -397,6 +422,10 @@ function prepare_temp_for_manual_installation() {
   local liferay_dependencies_archive=$(get_abs_filename "${additional_files_array[1]}")
   local liferay_osgi_archive=$(get_abs_filename "${additional_files_array[2]}")
 
+  local liferay_war_archive_version=$(get_liferay_additional_file_version "${liferay_war_archive}")
+  local liferay_dependencies_archive_version=$(get_liferay_additional_file_version "${liferay_dependencies_archive}")
+  local liferay_osgi_archive_version=$(get_liferay_additional_file_version "${liferay_osgi_archive}")
+
   # Extract Application Server
   local as_archive_file=$(get_jboss_archive "${1}")
   local as_archive_file_abs=$(get_abs_filename "${as_archive_file}")
@@ -419,7 +448,14 @@ function prepare_temp_for_manual_installation() {
 
   if [[ $? -eq 0 ]]; then
     cd "${temp_dir_abs}/liferay/osgi" || exit 3
-    tar -xvf $(get_abs_filename "${liferay_osgi_archive}") --strip 2
+
+    # Version check required because the directory structure inside the zip is
+    # different for liferay osgi archive
+    if [ "${liferay_osgi_archive_version}" == "7.3.10" ]; then
+      tar -xvf $(get_abs_filename "${liferay_osgi_archive}") --strip 1
+    else
+      tar -xvf $(get_abs_filename "${liferay_osgi_archive}") --strip 2
+    fi
   fi
 
   rm -fr ${temp_dir_abs}/liferay/osgi/state/*
