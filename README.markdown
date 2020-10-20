@@ -1,4 +1,4 @@
-# Official Docker Image Build Project
+# Docker Image Build Project
 
 This project is used to build Liferay Docker images for both Community Edition 
 and DXP. Liferay Commerce Docker images are also built through this project.
@@ -15,8 +15,28 @@ The project was born to build Liferay images based exclusively on the Tomcat bun
 This fork, born from the [Liferay Docker](https://github.com/liferay/liferay-docker) repository, 
 adds the ability to build Liferay local Docker images based on JBoss EAP.
 
+For more info about this project, you can read this article
+[How to create Docker images Liferay DXP + Red Hat JBoss EAP](https://techblog.smc.it/en/2020-10-21/come-creare-immagini-docker-liferay-dxp-jboss-eap)
+
 ## 1. Requirements
-@TODO: To be complete
+So that you can successfully complete the image creation Docker, a number of
+software requirements must be met for the machine dedicated to the build operation.
+The software requirements to be met are the following.
+
+1. Unix/Linux/macOS Operating System. Alternatively, a Bash shell (version 3.x) is sufficient.
+2. Docker Engine 18.x or 19.x.
+3. Git 2.x (optional).
+4. JDK 1.8 0 11.
+
+As for Docker, you can install Docker Desktop on your own workstation, available
+for both Microsoft operating systems and Apple operating systems. I recommend
+installing the stable version avoiding the edge version, the latter useful for
+experimenting with the latest features.
+
+If you have already installed Docker, check the version on your system using the
+`docker version` command making sure the version is in range indicated by the
+requirements. An example of the command output is shown below. In this case the
+version is 19.03.13, therefore in line with what is requested.
 
 ## 2. How to build local Docker images
 Using the build_local_image.sh command, you can build your own local Liferay 
