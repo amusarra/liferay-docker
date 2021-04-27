@@ -287,7 +287,7 @@ function install_jboss_patch() {
   local jboss_version=$(get_jboss_version "${TEMP_DIR}/bundles")
 
   if [[ -f $jboss_patch_archive ]]; then
-    local startup_wait=30
+    local startup_wait=40
     local jboss_console_log=jboss-patch-console.log
 
     echo "Preparing for installation of the JBoss EAP Patch ${jboss_patch_archive}..."
