@@ -291,7 +291,7 @@ function install_jboss_patch() {
     local jboss_console_log=jboss-patch-console.log
 
     echo "Preparing for installation of the JBoss EAP Patch ${jboss_patch_archive}..."
-    echo "Staring JBoss EAP Standalone in AdminOnly mode..."
+    echo "Starting JBoss EAP Standalone in AdminOnly mode..."
 
     ${TEMP_DIR}/liferay/jboss-eap-${jboss_version}/bin/standalone.sh --admin-only >$jboss_console_log 2>&1 &
 
@@ -310,10 +310,10 @@ function install_jboss_patch() {
     done
 
     if [ $launched = "false" ]; then
-      echo "Staring JBoss EAP Standalone in AdminOnly mode...[JBoss EAP did not start correctly. See the log file $jboss_console_log. Exiting]"
+      echo "Starting JBoss EAP Standalone in AdminOnly mode...[JBoss EAP did not start correctly. See the log file $jboss_console_log. Exiting]"
       exit 1
     else
-      echo "Staring JBoss EAP Standalone in AdminOnly mode...[END]"
+      echo "Starting JBoss EAP Standalone in AdminOnly mode...[END]"
     fi
 
     # Apply the patch

@@ -7,6 +7,7 @@
         <resource-root path="com.liferay.petra.lang.jar" />
         <resource-root path="com.liferay.petra.memory.jar" />
         <resource-root path="com.liferay.petra.nio.jar" />
+        <resource-root path="com.liferay.petra.url.pattern.mapper.jar" />
         <resource-root path="com.liferay.petra.process.jar" />
         <resource-root path="com.liferay.petra.reflect.jar" />
         <resource-root path="com.liferay.petra.sql.dsl.api.jar" />
