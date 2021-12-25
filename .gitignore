@@ -1,3 +1,6 @@
 downloads
 logs-*
 temp-*
+*.log
+.DS_Store
+.idea/*
