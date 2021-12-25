@@ -243,18 +243,20 @@ function get_tomcat_version() {
 }
 
 function install_fix_pack() {
+  foundFiles=false
+
   for temp_file_name in "${1}"/liferay-fix-pack-*; do
     if [[ -e ${temp_file_name} ]]; then
       echo "Copy the Liferay Fix Pack ${temp_file_name}" in ${TEMP_DIR}/liferay/patching-tool/patches
       cp "${temp_file_name}" ${TEMP_DIR}/liferay/patching-tool/patches
+      foundFiles=true
     fi
   done
 
-  if [ "$(ls -A ${TEMP_DIR}/liferay/patching-tool/patches/)" ]; then
+  if [ $foundFiles = "true" ]; then
 
     if (${TEMP_DIR}/liferay/patching-tool/patching-tool.sh install); then
       rm -fr ${TEMP_DIR}/liferay/osgi/state/*
-      rm -f ${TEMP_DIR}/liferay/patching-tool/patches/*
 
       echo ""
       echo "Fix Pack applied successfully."
@@ -263,18 +265,20 @@ function install_fix_pack() {
 }
 
 function install_hotfix() {
+  foundFiles=false
+
   for temp_file_name in "${1}"/liferay-hotfix-*; do
     if [[ -e ${temp_file_name} ]]; then
       echo "Copy the Liferay Hotfix ${temp_file_name}" in ${TEMP_DIR}/liferay/patching-tool/patches
       cp "${temp_file_name}" ${TEMP_DIR}/liferay/patching-tool/patches
+      foundFiles=true
     fi
   done
 
-  if [ "$(ls -A ${TEMP_DIR}/liferay/patching-tool/patches/)" ]; then
+  if [ $foundFiles = "true" ]; then
 
     if (${TEMP_DIR}/liferay/patching-tool/patching-tool.sh install); then
       rm -fr ${TEMP_DIR}/liferay/osgi/state/*
-      rm -f ${TEMP_DIR}/liferay/patching-tool/patches/*
 
       echo ""
       echo "Hotfix applied successfully."
@@ -287,7 +291,7 @@ function install_jboss_patch() {
   local jboss_version=$(get_jboss_version "${TEMP_DIR}/bundles")
 
   if [[ -f $jboss_patch_archive ]]; then
-    local startup_wait=40
+    local startup_wait=60
     local jboss_console_log=jboss-patch-console.log
 
     echo "Preparing for installation of the JBoss EAP Patch ${jboss_patch_archive}..."
@@ -331,19 +335,21 @@ function install_jboss_patch() {
 }
 
 function install_security_fix_pack() {
+  foundFiles=false
+
   for temp_file_name in "${1}"/liferay-security-*; do
     if [[ -e ${temp_file_name} ]]; then
       echo "Copy the Liferay Security Fix Pack ${temp_file_name}" in ${TEMP_DIR}/liferay/patching-tool/patches
       cp "${temp_file_name}" ${TEMP_DIR}/liferay/patching-tool/patches
+      foundFiles=true
     fi
   done
-
-  if [ "$(ls -A ${TEMP_DIR}/liferay/patching-tool/patches/)" ]; then
+  
+  if [ $foundFiles = "true" ]; then
 
     if (${TEMP_DIR}/liferay/patching-tool/patching-tool.sh install); then
       rm -fr ${TEMP_DIR}/liferay/osgi/state/*
-      rm -f ${TEMP_DIR}/liferay/patching-tool/patches/*
-
+      
       echo ""
       echo "Security Fix Pack applied successfully."
     fi
