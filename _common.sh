@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function check_liferay_additional_files() {
-  local found_additional_files=()
+  local found_additional_files=("-" "-" "-")
 
   local regex_osgi_dependencies='liferay-(dxp|ce)-(dependencies|osgi)-(([0-9]+\.)?([0-9]+\.)?(\*|[0-9]+)).+'
   local regex_war='liferay-(dxp|ce)-(([0-9]+\.)?([0-9]+\.)?(\*|[0-9]+)).+'
@@ -10,17 +10,17 @@ function check_liferay_additional_files() {
     if [[ $additional_file =~ $regex_osgi_dependencies ]]; then
 
       if [[ ${BASH_REMATCH[2]} == "osgi" ]]; then
-        found_additional_files+=("${additional_file}")
+        found_additional_files[2]="${additional_file}"
       fi
 
       if [[ ${BASH_REMATCH[2]} == "dependencies" ]]; then
-        found_additional_files+=("${additional_file}")
+        found_additional_files[1]="${additional_file}"
       fi
     fi
 
     if [[ $additional_file =~ $regex_war ]]; then
       if [[ ${additional_file} == *.war ]]; then
-        found_additional_files+=("${additional_file}")
+        found_additional_files[0]="${additional_file}"
       fi
     fi
   done
@@ -378,8 +378,10 @@ function prepare_jboss_eap() {
   local jboss_version=$(get_jboss_version "${TEMP_DIR}/bundles")
 
   # Copy Liferay Module Configuration from template
-  cp ${TEMP_DIR}/jboss-eap/${jboss_version}/modules/com/liferay/portal/main/* \
-    ${TEMP_DIR}/liferay/jboss-eap/modules/com/liferay/portal/main/
+  if [[ -d "${TEMP_DIR}/jboss-eap/${jboss_version}/modules/com/liferay/portal/main" ]]; then
+    cp ${TEMP_DIR}/jboss-eap/${jboss_version}/modules/com/liferay/portal/main/* \
+      ${TEMP_DIR}/liferay/jboss-eap/modules/com/liferay/portal/main/
+  fi
 
   # Copy JBoss EAP Standalone xml configuration for Liferay
   cp ${TEMP_DIR}/jboss-eap/${jboss_version}/standalone/configuration/* \
@@ -419,11 +421,6 @@ function prepare_temp_for_manual_installation() {
   additional_files=$(check_liferay_additional_files "${TEMP_DIR}/bundles")
   additional_files_array=($additional_files)
 
-  if [[ ${#additional_files_array[@]} -lt 3 ]]; then
-    echo "Check if all additional files is present in ${TEMP_DIR}/bundles"
-    exit 2
-  fi
-
   local liferay_war_archive=$(get_abs_filename "${additional_files_array[0]}")
   local liferay_dependencies_archive=$(get_abs_filename "${additional_files_array[1]}")
   local liferay_osgi_archive=$(get_abs_filename "${additional_files_array[2]}")
@@ -438,7 +435,12 @@ function prepare_temp_for_manual_installation() {
   cd "${temp_dir_abs}/liferay/jboss-eap" || exit 3
   tar -xvf "${as_archive_file_abs}" --strip 1
 
-  if [[ $? -eq 0 ]]; then
+  echo "-- Liferay additional files --"
+  echo "Liferay WAR archive: ${additional_files_array[0]} version: ${liferay_war_archive_version}"
+  echo "Liferay OSGi Dependencies: ${additional_files_array[2]} version: ${liferay_osgi_archive_version}"
+  echo "Liferay Dependencies: ${additional_files_array[3]} version: ${liferay_dependencies_archive_version}"  
+
+  if [[ $? -eq 0 && -n "${liferay_dependencies_archive_version}" ]]; then
     mkdir -p "${temp_dir_abs}/liferay/jboss-eap/modules/com/liferay/portal/main"
     cd "${temp_dir_abs}/liferay/jboss-eap/modules/com/liferay/portal/main" || exit 3
     tar -xvf $(get_abs_filename "${liferay_dependencies_archive}") --strip 1
@@ -457,7 +459,7 @@ function prepare_temp_for_manual_installation() {
 
     # Version check required because the directory structure inside the zip is
     # different for liferay osgi archive
-    if [ "${liferay_osgi_archive_version}" == "7.3.10" ]; then
+    if [[ "${liferay_osgi_archive_version}" == "7.3.10" || "${liferay_osgi_archive_version}" == "7.4.13" ]]; then
       tar -xvf $(get_abs_filename "${liferay_osgi_archive}") --strip 1
     else
       tar -xvf $(get_abs_filename "${liferay_osgi_archive}") --strip 2
