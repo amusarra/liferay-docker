@@ -18,6 +18,9 @@ adds the ability to build Liferay local Docker images based on JBoss EAP.
 For more info about this project, you can read this article
 [How to create Docker images Liferay DXP + Red Hat JBoss EAP](https://techblog.smc.it/en/2020-10-21/come-creare-immagini-docker-liferay-dxp-jboss-eap)
 
+For more information about Liferay Docker images I recommend reading the 
+documentation [Starting with a Docker Image](https://learn.liferay.com/dxp/latest/en/getting-started/starting-with-a-docker-image.html)
+
 ## 1. Requirements
 So that you can successfully complete the image creation Docker, a number of
 software requirements must be met for the machine dedicated to the build operation.
@@ -67,7 +70,7 @@ the Docker repository.
 
 ### 2.1 How to build a Liferay local Docker image based on JBoss EAP
 Before running the build image command, the following requirements must be met.
-The image creation process refers to the documentation [Installing on JBoss EAP](https://learn.liferay.com/dxp/7.x/en/installation-and-upgrades/installing-liferay/installing-liferay-on-an-application-server/installing-on-jboss-eap.html).
+The image creation process refers to the documentation [Installing on JBoss EAP](https://learn.liferay.com/dxp/latest/en/installation-and-upgrades/installing-liferay/installing-liferay-on-an-application-server/installing-on-jboss-eap.html).
 
 Installing on JBoss EAP requires deploying dependencies, modifying scripts, 
 modifying config xml files, and deploying the DXP WAR file. 
@@ -82,6 +85,9 @@ Liferay Community Downloads and RedHat Customer Portal
 2. Dependencies ZIP file
 3. OSGi Dependencies ZIP file
 4. JBoss EAP ZIP file
+
+**Attention!** As of Liferay version 7.4, the *Dependencies ZIP file* is no longer 
+needed and is therefore no longer available for download.
 
 Note that Liferay Home is the folder containing the JBoss server folder. 
 After installing and deploying DXP, the Liferay Home folder contains the 
@@ -99,14 +105,32 @@ liferay-dxp-osgi-7.2.10.3-sp3-202009100727.zip
 liferay-dxp-7.2.10.3-sp3-202009100727.war
 ```
 
+In the case of the build of the base image of Liferay 7.4 DXP Update 25 with 
+JBoss EAP 7.4 (with patch number 4), the necessary files are those indicated 
+below. 
+
+In this software release, you can create the image with JBoss EAP 7.4 only 
+with Liferay 7.4. In case you want to install Liferay 7.3 with JBoss EAP 7.4, 
+you need to add the modules directory structure to the JBoss EAP 7.4 template 
+configuration.
+
+```bash
+jboss-eap-7.4.0.zip
+jboss-eap-7.4.4-patch.zip
+liferay-dxp-7.4.13.u25-20220517155936227.war
+liferay-dxp-osgi-7.4.13.u25-20220517155936227.zip
+```
+
 It is not necessary that the downloaded files are necessarily present in the 
 project, the path must be indicated as an argument of the build command.
 **It is important not to rename the file names.**
 
 At this point you can proceed with the build of the image using the command below.
-In this case the downloaded bundles are inside the xxx directory and the resulting 
-image will have the name `amusarra:liferay72-dxp-dev`. 
+In this case the downloaded bundles are inside the `../../bundles/` directory 
+and the resulting image will have the name `amusarra:liferay72-dxp-dev`. 
+
 The image will not be published on the Docker repository (`no-push` param). 
+
 The `jboss-eap` parameter indicates to create the Liferay Docker image with JBoss EAP.
 
 ```bash
@@ -114,20 +138,40 @@ The `jboss-eap` parameter indicates to create the Liferay Docker image with JBos
 ```
 
 The basic JBoss EAP configuration is governed by configuration files located 
-within the following directory.
+within the following directory. For each version of JBoss there is a dedicated directory.
 
 ```bash
 template
 └── jboss-eap
-   └── 7.2.0
+   ├── 7.2.0
+   │   ├── bin
+   │   │   └── standalone.conf
+   │   ├── modules
+   │   │   └── com
+   │   │       └── liferay
+   │   │           └── portal
+   │   │               └── main
+   │   │                   ├── module.xml
+   │   │                   └── ojdbc8.jar
+   │   └── standalone
+   │       └── configuration
+   │           └── standalone.xml
+   ├── 7.3.0
+   │   ├── bin
+   │   │   └── standalone.conf
+   │   ├── modules
+   │   │   └── com
+   │   │       └── liferay
+   │   │           └── portal
+   │   │               └── main
+   │   │                   ├── module.xml
+   │   │                   └── ojdbc8.jar
+   │   └── standalone
+   │       └── configuration
+   │           └── standalone.xml
+   └── 7.4.0
        ├── bin
        │   └── standalone.conf
-       ├── modules
-       │   └── com
-       │       └── liferay
-       │           └── portal
-       │               └── main
-       │                   └── module.xml
        └── standalone
            └── configuration
                └── standalone.xml
@@ -144,6 +188,7 @@ The `docker images` command displays the newly created image.
 REPOSITORY                 TAG                              IMAGE ID            CREATED             SIZE
 amusarra                   liferay72-dxp-dev                dc47e5d30128        6 hours ago         1.89GB
 amusarra                   liferay72-dxp-dev-202009291154   dc47e5d30128        6 hours ago         1.89GB
+amusarra				   liferay74-dxp-jboss-eap-74		32b2f5fac0f6        54 minutes ago      1.7GB
 ```
 
 To launch the new image, just run the following command. As indicated in the 
