@@ -141,7 +141,7 @@ The basic JBoss EAP configuration is governed by configuration files located
 within the following directory. For each version of JBoss there is a dedicated directory.
 
 ```bash
-template
+templates/bundle
 └── jboss-eap
    ├── 7.2.0
    │   ├── bin
