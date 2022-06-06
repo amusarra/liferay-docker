@@ -19,13 +19,26 @@ function main {
 
 	. set_java_version.sh
 
-	configure_liferay.sh
+	. configure_liferay.sh
 
 	execute_scripts /usr/local/liferay/scripts/pre-startup
 
-	start_liferay.sh
+	start_liferay
 
 	execute_scripts /usr/local/liferay/scripts/post-shutdown
+
+}
+
+function start_liferay {
+	set +e
+
+	start_liferay.sh &
+
+	START_LIFERAY_PID=$!
+
+	echo "${START_LIFERAY_PID}" > "${LIFERAY_PID}"
+
+	wait ${START_LIFERAY_PID}
 }
 
 main

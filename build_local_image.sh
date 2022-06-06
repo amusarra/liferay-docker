@@ -2,9 +2,9 @@
 
 source ./_common.sh
 
-function build_docker_image() {
-  local docker_image_name=${2}
-  local release_version=${3}
+function build_docker_image {
+	local docker_image_name=${2}
+	local release_version=${3}
 
   DOCKER_IMAGE_TAGS=()
 
@@ -48,7 +48,7 @@ function check_usage() {
 function main() {
   check_usage ${@}
 
-  make_temp_directory
+  make_temp_directory templates/bundle
 
   if [[ ${5} == "jboss-eap" ]]; then
 
@@ -67,18 +67,18 @@ function main() {
     install_hotfix "${@}"
 
   else
-    prepare_temp_directory ${@}
+    prepare_temp_directory "${@}"
 
     prepare_tomcat
   fi
 
-  build_docker_image ${@}
+	build_docker_image "${@}"
 
   if [[ ${5} != "jboss-eap" ]]; then
     test_docker_image
   fi
 
-  push_docker_images ${4}
+  push_docker_images "${4}"
 
   clean_up_temp_directory
 }
@@ -96,7 +96,7 @@ function prepare_patching_tool() {
 }
 
 function prepare_temp_directory() {
-  cp -a ${1} ${TEMP_DIR}/liferay
+  cp -a "${1}" "${TEMP_DIR}/liferay"
 }
 
-main ${@}
+main "${@}"

@@ -5,9 +5,9 @@ source ./_common.sh
 function check_usage {
 	if [ ! -n "${1}" ] ||
 	   [[ ("${1}" != "commit") &&
-		  ("${1}" != "display") &&
-		  ("${1}" != "fail-on-change") &&
-		  ("${1}" != "get-version") ]]
+	   ("${1}" != "display") &&
+	   ("${1}" != "fail-on-change") &&
+	   ("${1}" != "get-version") ]]
 	then
 		echo "Usage: ${0} <command>"
 		echo ""
@@ -25,52 +25,37 @@ function check_usage {
 }
 
 function generate_release_notes {
-	if [ ! -n "${CHANGE_LOG}" ]
+	if [ ! -n "${RELEASE_NOTES_CHANGE_LOG}" ]
 	then
 		return
 	fi
 
-	if ( git log --pretty=%s ${RELEASE_NOTES_LATEST_SHA}..${CURRENT_SHA} | grep "#majorchange" > /dev/null )
-	then
-		RELEASE_NOTES_VERSION_MAJOR=$(($RELEASE_NOTES_VERSION_MAJOR+1))
-		RELEASE_NOTES_VERSION_MINOR=0
-		RELEASE_NOTES_VERSION_MICRO=0
-	elif ( git log --pretty=%s ${RELEASE_NOTES_LATEST_SHA}..${CURRENT_SHA} | grep "#minorchange" > /dev/null )
-	then
-		RELEASE_NOTES_VERSION_MINOR=$(($RELEASE_NOTES_VERSION_MINOR+1))
-		RELEASE_NOTES_VERSION_MICRO=0
-	else
-		RELEASE_NOTES_VERSION_MICRO=$(($RELEASE_NOTES_VERSION_MICRO+1))
-	fi
-
-	local new_version=${RELEASE_NOTES_VERSION_MAJOR}.${RELEASE_NOTES_VERSION_MINOR}.${RELEASE_NOTES_VERSION_MICRO}
-
-	echo "Bump version from ${RELEASE_NOTES_LATEST_VERSION} to ${new_version}."
+	echo "Bump version from ${RELEASE_NOTES_LATEST_VERSION} to ${RELEASE_NOTES_NEW_VERSION}."
 
 	if [ "${1}" == "commit" ]
 	then
 		(
 			echo ""
 			echo "#"
-			echo "# Liferay Docker Image Version ${new_version}"
+			echo "# Liferay Docker Image Version ${RELEASE_NOTES_NEW_VERSION}"
 			echo "#"
 			echo ""
-			echo "docker.image.change.log-${new_version}=${CHANGE_LOG}"
-			echo "docker.image.git.id-${new_version}=${CURRENT_SHA}"
+			echo "docker.image.change.log-${RELEASE_NOTES_NEW_VERSION}=${RELEASE_NOTES_CHANGE_LOG}"
+			echo "docker.image.git.id-${RELEASE_NOTES_NEW_VERSION}=${RELEASE_NOTES_CURRENT_SHA}"
 		) >> .releng/docker-image.changelog
 
 		git add .releng/docker-image.changelog
 
-		git commit -m "${new_version} change log"
+		git commit -m "${RELEASE_NOTES_NEW_VERSION} change log"
 	fi
 }
 
 function get_change_log {
-	CURRENT_SHA=$(git log -1 --pretty=%H)
+	RELEASE_NOTES_CURRENT_SHA=$(git log -1 --pretty=%H)
 
-	CHANGE_LOG=$(git log --pretty=%s --grep "^LPS-" ${RELEASE_NOTES_LATEST_SHA}..${CURRENT_SHA} | sed -e "s/\ .*/ /" | uniq | tr -d "\n" | tr -d "\r" | sed -e "s/ $//")
+	RELEASE_NOTES_CHANGE_LOG=$(git log --grep "^DOCKER-" --pretty=%s "${RELEASE_NOTES_LATEST_SHA}..${RELEASE_NOTES_CURRENT_SHA}" | sed -e "s/\ .*/ /" | uniq | tr -d "\n" | tr -d "\r" | sed -e "s/ $//")
 
-	if [ "${1}" == "fail-on-change" ] && [ -n "${CHANGE_LOG}" ]
+	if [ "${1}" == "fail-on-change" ] && [ -n "${RELEASE_NOTES_CHANGE_LOG}" ]
 	then
 		echo "There was a change in the repository which requires regenerating the release notes."
 		echo ""
@@ -81,7 +66,7 @@ function get_change_log {
 }
 
 function get_latest_version {
-	local git_line=$(cat .releng/docker-image.changelog | grep docker.image.git.id | tail -n1)
+	local git_line=$(grep 'docker.image.git.id' .releng/docker-image.changelog | tail -n1)
 
 	RELEASE_NOTES_LATEST_SHA=${git_line#*=}
 
@@ -94,23 +79,56 @@ function get_latest_version {
 	RELEASE_NOTES_VERSION_MINOR=${RELEASE_NOTES_VERSION_MINOR%.*}
 
 	RELEASE_NOTES_VERSION_MICRO=${RELEASE_NOTES_LATEST_VERSION##*.}
+}
 
+function get_new_version {
+	if [ ! -n "${RELEASE_NOTES_CHANGE_LOG}" ]
+	then
+		return
+	fi
+
+	if (git log --pretty=%s "${RELEASE_NOTES_LATEST_SHA}..${RELEASE_NOTES_CURRENT_SHA}" | grep "#majorchange" > /dev/null)
+	then
+		RELEASE_NOTES_VERSION_MAJOR=$((RELEASE_NOTES_VERSION_MAJOR+1))
+		RELEASE_NOTES_VERSION_MINOR=0
+		RELEASE_NOTES_VERSION_MICRO=0
+	elif (git log --pretty=%s "${RELEASE_NOTES_LATEST_SHA}..${RELEASE_NOTES_CURRENT_SHA}" | grep "#minorchange" > /dev/null)
+	then
+		RELEASE_NOTES_VERSION_MINOR=$((RELEASE_NOTES_VERSION_MINOR+1))
+		RELEASE_NOTES_VERSION_MICRO=0
+	else
+		RELEASE_NOTES_VERSION_MICRO=$((RELEASE_NOTES_VERSION_MICRO+1))
+	fi
+
+	RELEASE_NOTES_NEW_VERSION="${RELEASE_NOTES_VERSION_MAJOR}.${RELEASE_NOTES_VERSION_MINOR}.${RELEASE_NOTES_VERSION_MICRO}"
+}
+
+function main {
+	check_usage "${@}"
+
+	get_latest_version "${@}"
+
+	get_change_log "${@}"
+
+	get_new_version "${@}"
+
+	print_version "${@}"
+
+	generate_release_notes "${@}"
+}
+
+function print_version {
 	if [ "${1}" == "get-version" ]
 	then
-		echo ${RELEASE_NOTES_LATEST_VERSION}
+		if [ -n "${RELEASE_NOTES_CHANGE_LOG}" ]
+		then
+			echo "${RELEASE_NOTES_NEW_VERSION}-snapshot"
+		else
+			echo "${RELEASE_NOTES_LATEST_VERSION}"
+		fi
 
 		exit
 	fi
 }
 
-function main {
-	check_usage ${@}
-
-	get_latest_version ${@}
-
-	get_change_log ${@}
-
-	generate_release_notes ${@}
-}
-
-main ${@}
+main "${@}"
